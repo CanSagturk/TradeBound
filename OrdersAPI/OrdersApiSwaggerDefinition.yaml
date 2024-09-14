@@ -1,0 +1,267 @@
+openapi: 3.0.0
+info:
+  title: Orders API
+  description: Service for managing buy and sell orders, as well as the order history.
+  version: 1.0.0
+servers:
+  - url: https://api.orders.example.com/
+paths:
+  /orders/sell:
+    post:
+      summary: Create a sell order
+      description: Create a new sell order. Check if there is a buy order where the price is equal to or greater than the price of the sell order. If it exists, execute the order based on the price set by the seller for the cheapest buy order that is at least as expensive as the sell order. If there is multiple of such buy orders, choose the oldest. If such a buy order does not exist, then record the order.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userId:
+                  type: string
+                  description: ID of the player creating the sell order.
+                itemId:
+                  type: string
+                  description: ID of the item being sold.
+                price:
+                  type: number
+                  description: Price for the sell order.
+                currency:
+                  type: string
+                  description: Currency type for the transaction.
+              required:
+                - userId
+                - itemId
+                - price
+                - currency
+      responses:
+        '200':
+          description: Sell order created successfully
+
+  /orders/buy:
+    post:
+      summary: Create a buy order.
+      description: Create a new buy order. Check if there is a sell order where the price is equal to or less than the price of the buy order. If it exists, execute the order based on the price set by the seller for the cheapest sell order that is at most as expensive as the buy order. If multiple of such sell orders exists, then choose the oldest one. If such a sell order does not exist, then record the order.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userId:
+                  type: string
+                  description: ID of the player creating the sell order.
+                itemId:
+                  type: string
+                  description: ID of the item being sold.
+                price:
+                  type: number
+                  description: Price for the sell order.
+                currency:
+                  type: string
+                  description: Currency type for the transaction.
+              required:
+                - userId
+                - itemId
+                - price
+                - currency
+      responses:
+        '200':
+          description: Buy order created successfully
+
+  /orders/sell-orders:
+    get:
+      summary: Get all active sell orders.
+      description: Retrieve a list of active sell orders, optionally filtered by item ID or price range. Also possible to include a set of filters that apply to item properties.
+      parameters:
+        - name: itemId
+          in: query
+          schema:
+            type: string
+          description: ID of the item to filter sell orders by.
+        - name: minPrice
+          in: query
+          schema:
+            type: number
+          description: Minimum price to filter sell orders by.
+        - name: maxPrice
+          in: query
+          schema:
+            type: number
+          description: Maximum price to filter sell orders by.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                filters:
+                  type: object
+                  description: Map of arbitrary filters will apply to item properties.
+                  additionalProperties: true
+                  example:
+                    itemType: "Weapon"
+                    rarity: "Epic"
+      responses:
+        '200':
+          description: List of sell orders that fit the criteria, all of them if there weren't any criterion.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    orderId:
+                      type: string
+                      description: ID of the sell order.
+                    userId:
+                      type: string
+                      description: ID of the user who created the sell order.
+                    itemId:
+                      type: string
+                      description: ID of the item being sold.
+                    price:
+                      type: number
+                      description: Price of the sell order.
+                    currency:
+                      type: string
+                      description: Currency type for the transaction.
+        '400':
+          description: Invalid filter criteria
+        '404':
+          description: No items that fit the criteria were found
+
+  /orders/sell-orders/lowest-prices:
+    get:
+      summary: Get the price of the cheapest sell order per item.
+      description: Get the price of the cheapest sell order per item, optionally filtered by item ID or price range. Also possible to include a set of filters that apply to item properties.
+      parameters:
+        - name: itemId
+          in: query
+          schema:
+            type: string
+          description: ID of the item to filter sell orders by.
+        - name: minPrice
+          in: query
+          schema:
+            type: number
+          description: Minimum price to filter sell orders by.
+        - name: maxPrice
+          in: query
+          schema:
+            type: number
+          description: Maximum price to filter sell orders by.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                filters:
+                  type: object
+                  description: Map of arbitrary filters will apply to item properties.
+                  additionalProperties: true
+                  example:
+                    itemType: "Weapon"
+                    rarity: "Epic"
+      responses:
+        '200':
+          description: List of sell orders that fit the criteria, all of them if there weren't any criterion.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    itemId:
+                      type: string
+                      description: ID of the item being sold.
+                    price:
+                      type: number
+                      description: Price of the sell order.
+                    currency:
+                      type: string
+                      description: Currency type for the transaction.
+        '400':
+          description: Invalid filter criteria
+        '404':
+          description: No items that fit the criteria were found
+
+  /orders/sell-orders/user/{userId}:
+    get:
+      summary: Get all sell orders of a user.
+      description: Retrieve all active sell orders created by a specific user.
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Sell orders retrieved successfully.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    orderId:
+                      type: string
+                      description: ID of the buy order.
+                    itemId:
+                      type: string
+                      description: ID of the item being bought.
+                    price:
+                      type: number
+                      description: Price of the buy order.
+                    currency:
+                      type: string
+                      description: Currency type for the transaction.
+                    quantity:
+                      type: number
+                      description: Number of items sold.
+        '404':
+          description: No sell orders found for the user
+
+  /orders/buy-orders/user/{userId}:
+    get:
+      summary: Get all buy orders of a user.
+      description: Retrieve all active buy orders created by a specific user.
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Buy orders retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    orderId:
+                      type: string
+                      description: ID of the buy order.
+                    itemId:
+                      type: string
+                      description: ID of the item being bought.
+                    price:
+                      type: number
+                      description: Price of the buy order.
+                    currency:
+                      type: string
+                      description: Currency type for the transaction.
+                    quantity:
+                      type: number
+                      description: Number of items requested.
+        '404':
+          description: No buy orders found for the user.
