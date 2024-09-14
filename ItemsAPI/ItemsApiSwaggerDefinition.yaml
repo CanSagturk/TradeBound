@@ -1,0 +1,116 @@
+openapi: 3.0.0
+info:
+  title: Items API
+  description: Service for getting and querying items.
+  version: 1.0.0
+servers:
+  - url: https://api.items.example.com/v1
+
+paths:
+  /items:
+    get:
+      summary: Get all items with optional filters.
+      description: Retrieve a list of all available items, optionally applying filters.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                filters:
+                  type: object
+                  description: Map of arbitrary filters will apply to item properties.
+                  additionalProperties: true
+                  example:
+                    type: "Weapon"
+                    rarity: "Epic"
+      responses:
+        '200':
+          description: List of items retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Item'
+        '400':
+          description: Invalid filter parameters
+        '404':
+          description: No items were found.
+
+  /items/{itemId}:
+    get:
+      summary: Get item details by item ID.
+      description: Retrieve information about a specific item.
+      parameters:
+        - name: itemId
+          in: path
+          required: true
+          schema:
+            type: string
+            description: The ID of the item to retrieve.
+      responses:
+        '200':
+          description: Item details retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Item'
+        '404':
+          description: Item not found.
+
+  /items/bulk:
+    post:
+      summary: Get details for multiple items by their IDs.
+      description: Retrieve detailed information for multiple items by providing a list of item IDs.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                itemIds:
+                  type: array
+                  items:
+                    type: string
+                    description: The IDs of the items to retrieve.
+              required:
+                - itemIds
+      responses:
+        '200':
+          description: At least one item with the provided IDs were found.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Item'
+        '400':
+          description: Invalid request body.
+        '404':
+          description: No items were found with the provided IDs.
+components:
+  schemas:
+    Item:
+      type: object
+      properties:
+        id:
+          type: string
+          description: The ID of the item.
+        name:
+          type: string
+          description: Name of the item.
+        rarity:
+          type: string
+          description: Rarity level of the item.
+        type:
+          type: string
+          description: Type of the item.
+        tradable:
+          type: boolean
+          description: Whether the item is tradable.
+        attributes:
+          type: object
+          additionalProperties: true
+          description: Arbitrary attributes related to the item (e.g., damage, durability, etc.).

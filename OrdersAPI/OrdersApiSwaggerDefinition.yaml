@@ -101,7 +101,7 @@ paths:
                   description: Map of arbitrary filters will apply to item properties.
                   additionalProperties: true
                   example:
-                    itemType: "Weapon"
+                    type: "Weapon"
                     rarity: "Epic"
       responses:
         '200':
@@ -111,23 +111,7 @@ paths:
               schema:
                 type: array
                 items:
-                  type: object
-                  properties:
-                    orderId:
-                      type: string
-                      description: ID of the sell order.
-                    userId:
-                      type: string
-                      description: ID of the user who created the sell order.
-                    itemId:
-                      type: string
-                      description: ID of the item being sold.
-                    price:
-                      type: number
-                      description: Price of the sell order.
-                    currency:
-                      type: string
-                      description: Currency type for the transaction.
+                  $ref: '#/components/schemas/Order'
         '400':
           description: Invalid filter criteria
         '404':
@@ -208,23 +192,7 @@ paths:
               schema:
                 type: array
                 items:
-                  type: object
-                  properties:
-                    orderId:
-                      type: string
-                      description: ID of the buy order.
-                    itemId:
-                      type: string
-                      description: ID of the item being bought.
-                    price:
-                      type: number
-                      description: Price of the buy order.
-                    currency:
-                      type: string
-                      description: Currency type for the transaction.
-                    quantity:
-                      type: number
-                      description: Number of items sold.
+                  $ref: '#/components/schemas/Order'
         '404':
           description: No sell orders found for the user
 
@@ -246,22 +214,26 @@ paths:
               schema:
                 type: array
                 items:
-                  type: object
-                  properties:
-                    orderId:
-                      type: string
-                      description: ID of the buy order.
-                    itemId:
-                      type: string
-                      description: ID of the item being bought.
-                    price:
-                      type: number
-                      description: Price of the buy order.
-                    currency:
-                      type: string
-                      description: Currency type for the transaction.
-                    quantity:
-                      type: number
-                      description: Number of items requested.
+                  $ref: '#/components/schemas/Order'
         '404':
           description: No buy orders found for the user.
+components:
+  schemas:
+    Order:
+      type: object
+      properties:
+        orderId:
+          type: string
+          description: ID of the buy order.
+        itemId:
+          type: string
+          description: ID of the item being bought.
+        price:
+          type: number
+          description: Price of the buy order.
+        currency:
+          type: string
+          description: Currency type for the transaction.
+        quantity:
+          type: number
+          description: Number of items requested.
